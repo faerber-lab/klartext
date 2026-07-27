@@ -1,0 +1,24 @@
+# Install to /etc/systemd/system/klartext-backend.service, then:
+#   sudo systemctl daemon-reload && sudo systemctl restart klartext-backend.service
+#
+# Changed from ExecStart=npm run dev (ts-node-dev, transpiling on every request)
+# to the compiled output produced by `npm run build` in CI.
+#
+# klartext-frontend.service is retired — nginx serves frontend/dist directly:
+#   sudo systemctl stop klartext-frontend.service
+#   sudo systemctl disable klartext-frontend.service
+
+[Unit]
+Description=klartext backend
+After=network.target
+
+[Service]
+WorkingDirectory=/home/klartext/klartext/klartext/backend
+ExecStart=npm start
+Restart=always
+User=root
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=deploy
+
+[Install]
+WantedBy=multi-user.target

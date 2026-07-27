@@ -1,0 +1,53 @@
+name: CI
+
+# Pull request checks only. This never runs on the self-hosted runner and never
+# touches the server — see deploy.yml for deployment.
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.19.1'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Build frontend
+        working-directory: frontend
+        # DEPLOY_MODE is compiled into the bundle, so build the way production
+        # does. Neither value is a secret.
+        env:
+          DEPLOY_MODE: server
+        run: npm run build
+
+      - name: Test backend
+        working-directory: backend
+        # src/db.ts throws at import unless DEPLOY is exactly "false", and there
+        # is no .env here.
+        env:
+          DEPLOY: 'false'
+        run: npm test

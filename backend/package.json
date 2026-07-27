@@ -1,11 +1,11 @@
 {
   "name": "klartext-backend",
   "version": "1.0.0",
-  "main": "dist/app.js",
+  "main": "dist/src/app.js",
   "scripts": {
-    "start": "node dist/app.js",
+    "start": "node dist/src/app.js",
     "dev": "ts-node-dev src/app.ts",
-    "test": "jest",
+    "test": "jest --forceExit",
     "build": "tsc"
   },
   "author": "",
