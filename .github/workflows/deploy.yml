@@ -1,43 +1,121 @@
 name: Deploy Frontend and Backend
 
+# Deploys on merge to main. Pull request checks live in ci.yml and deliberately
+# do not run here — the deploy job uses a self-hosted runner with access to the
+# production host.
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
+permissions:
+  contents: read
+
+# Never let two deploys interleave and half-restart the service.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
+  # Greenlight: the exact commit must build and test clean on a disposable
+  # runner before anything touches the server.
+  verify:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.19.1'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          DEPLOY_MODE: server
+        run: npm run build
+
+      - name: Test backend
+        working-directory: backend
+        env:
+          DEPLOY: 'false'
+        run: npm test
+
   deploy:
+    name: Deploy to production
+    needs: verify
     runs-on: self-hosted
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '18.19.1'
 
-      - name: Install frontend dependencies
-        working-directory: /home/klartext/klartext/klartext/frontend
-        run: npm install
-
       - name: Install backend dependencies
-        working-directory: /home/klartext/klartext/klartext/backend
-        run: npm install
+        working-directory: backend
+        run: npm ci
 
-      - name: Copy frontend .env file
-        run: sudo cp /root/secrets/frontend/.env /home/klartext/klartext/klartext/frontend/.env
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
 
-      - name: Copy backend .env file
-        run: sudo cp /root/secrets/backend/.env /home/klartext/klartext/klartext/backend/.env
-
-      - name: Restart frontend service
+      # Secrets are passed via env rather than interpolated into the script, so
+      # a value containing backticks or $(...) cannot execute as shell.
+      # umask 077 keeps the written file non-world-readable.
+      - name: Write backend .env
+        working-directory: backend
+        env:
+          ENV_FILE: ${{ secrets.BACKEND_ENV }}
         run: |
-          sudo systemctl restart klartext-frontend.service
+          umask 077
+          printf '%s\n' "$ENV_FILE" > .env
 
+      - name: Write frontend .env
+        working-directory: frontend
+        env:
+          ENV_FILE: ${{ secrets.FRONTEND_ENV }}
+        run: |
+          umask 077
+          printf '%s\n' "$ENV_FILE" > .env
+
+      # Must run after the .env files exist: DEPLOY_MODE is compiled into the
+      # frontend bundle, and building without it bakes in http://localhost:7171.
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          test -f frontend/dist/index.html
+          test -f frontend/dist/locales/de/translation.json
+          test -f backend/dist/src/app.js
+          if grep -q '@vite/client' frontend/dist/index.html; then
+            echo "::error::dist/index.html references the dev client" && exit 1
+          fi
+
+      # nginx serves frontend/dist directly; there is no frontend service.
       - name: Restart backend service
-        run: |
-          sudo systemctl restart klartext-backend.service
+        run: sudo systemctl restart klartext-backend.service
