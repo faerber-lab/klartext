@@ -51,7 +51,7 @@ Context: ${context}
   try {
     const apiClient = createApiClient(apiKey);
     const response = await apiClient.post('', {
-      model: "gpt-4",
+      model: "gpt-5.4-nano",
       messages: [{ role: "user", content: userPrompt }],
       max_tokens: 200,
       temperature: 0.7,
