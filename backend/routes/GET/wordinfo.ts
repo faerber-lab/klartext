@@ -28,7 +28,7 @@ Do not include any explanation or text outside the JSON object.
     const apiClient = createApiClient(apiKey);
 
     const response = await apiClient.post('', {
-        model: "gpt-4",
+        model: "gpt-5.4-nano",
         messages: [{ role: "user", content: userPrompt }],
         max_tokens: 100,
         temperature: 0
