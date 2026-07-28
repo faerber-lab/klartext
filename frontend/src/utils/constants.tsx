@@ -1,5 +1,7 @@
-export const BASE_URL = process.env.DEPLOY_MODE === "server" 
-? "https://simplifymytext.org:7171" 
+// In production nginx terminates TLS and proxies /api to the backend, so the
+// API is same-origin. Dev still talks to the backend port directly.
+export const BASE_URL = process.env.DEPLOY_MODE === "server"
+? "/api"
 : "http://localhost:7171";
 export const audienceOptions = [
   { value: "scientists", label: "Scientists and Researchers" },

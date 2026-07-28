@@ -1,7 +1,5 @@
 import express, {Response } from 'express';
 import dotenv from 'dotenv';
-import https from 'https';
-import fs from 'fs';
 import cookieParser from 'cookie-parser';
 import { policy, checkOrigin } from './functions/originCheck';
 
@@ -16,8 +14,6 @@ dotenv.config();
 
 const app = express();
 const port = 7171;
-const SSL_KEY_PATH = process.env.SSL_KEY_PATH || "error";
-const SSL_CERT_PATH = process.env.SSL_CERT_PATH || "error";
 const deploy = process.env.NODE_ENV === "deploy";
 const sk = process.env.SK || "error";
 
@@ -40,13 +36,10 @@ app.get('/word-info', wordInfoRouter);
 app.get('/set-cookie', setCookieRouter);
 
 if (deploy){
-  const sslOptions = {
-    key: fs.readFileSync(SSL_KEY_PATH),
-    cert: fs.readFileSync(SSL_CERT_PATH)
-  };
-  const server = https.createServer(sslOptions, app);
-  server.listen(port, () => {
-    console.log('Backend listening at https://simplifymytext.org:7171');
+  // nginx terminates TLS and proxies /api here, so this process speaks plain
+  // HTTP. Binding to loopback keeps it off the public interface.
+  app.listen(port, '127.0.0.1', () => {
+    console.log(`Backend listening at http://127.0.0.1:${port}`);
   });
 } else {
   app.listen(port, ()=>{
