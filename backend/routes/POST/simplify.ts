@@ -6,7 +6,7 @@ import { validateUrl } from '../../src/./utils/validateUrl'
 import { simplifyText } from '../../src/functions/simplifyText';
 import { saveToRedis } from '../../src/functions/saveToRedis';
 
-const apiKey = process.env.OPENAI_API_KEY || "error" ;
+const apiKey = process.env.LLM_API_KEY || "error" ;
 const wordLimit = Number(process.env.WORD_LIMIT) || 5000;
 
 

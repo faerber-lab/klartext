@@ -15,12 +15,10 @@ import {feedbackRouter} from '../routes/POST/feedback';
 dotenv.config();
 
 const app = express();
-const apiKey = process.env.OPENAI_API_KEY || "error" ;
 const port = 7171;
 const SSL_KEY_PATH = process.env.SSL_KEY_PATH || "error";
 const SSL_CERT_PATH = process.env.SSL_CERT_PATH || "error";
 const deploy = process.env.NODE_ENV === "deploy";
-const wordLimit = Number(process.env.WORD_LIMIT) || 5000;
 const sk = process.env.SK || "error";
 
 // middleware

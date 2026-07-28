@@ -1,9 +1,9 @@
 import { Request, Response, Router } from "express";
 import { createApiClient } from '../../src/api/apiClient'
-import { get } from "http";
+import { CHAT_COMPLETIONS, describeApiError, fallbacksDisabled, getModel } from '../../src/api/llmConfig'
 import dotenv from "dotenv";
 dotenv.config();
-const apiKey = process.env.OPENAI_API_KEY || "error" ;
+const apiKey = process.env.LLM_API_KEY || "error" ;
 
 const wordInfoRouter = Router();
 
@@ -27,11 +27,15 @@ Do not include any explanation or text outside the JSON object.
   try {
     const apiClient = createApiClient(apiKey);
 
-    const response = await apiClient.post('', {
-        model: "gpt-5.4-nano",
+    const response = await apiClient.post(CHAT_COMPLETIONS, {
+        model: getModel(),
         messages: [{ role: "user", content: userPrompt }],
         max_tokens: 100,
-        temperature: 0
+        temperature: 0,
+        disable_fallbacks: fallbacksDisabled(),
+        // The prompt asks for bare JSON; constrained decoding makes the
+        // open-weight model actually honour that so JSON.parse below holds.
+        response_format: { type: "json_object" }
       }
     );
 
@@ -47,7 +51,7 @@ Do not include any explanation or text outside the JSON object.
     }
     res.json({ word, definition, synonyms });
   } catch (error) {
-    console.error("Error fetching word info:", error);
+    console.error("Error fetching word info:", describeApiError(error));
     res.status(500).json({ error: "Error fetching word information" });
   }
 };

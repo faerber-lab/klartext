@@ -1,8 +1,10 @@
 import axios from 'axios';
+import { getBaseUrl } from './llmConfig';
 
 export const createApiClient = (apiKey: string) => {
   return axios.create({
-    baseURL: 'https://api.openai.com/v1/chat/completions',
+    baseURL: getBaseUrl(),
+    timeout: 60000,
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',

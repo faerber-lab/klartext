@@ -12,7 +12,7 @@ import {
 const LanguageSelector = () => {
     const { i18n } = useTranslation();
 
-    const handleLanguageChange = (lang) => {
+    const handleLanguageChange = (lang: string) => {
         i18n.changeLanguage(lang);
     };
 
