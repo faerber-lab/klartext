@@ -38,7 +38,7 @@ A **tutorial video** is available at https://datashare.tu-dresden.de/s/XMqESdFef
 - **Frontend**: React with TypeScript.
 - **Backend**: Express with TypeScript.
 - **Styling**: Tailwind CSS.
-- **APIs**: [ScaDS.AI LLM](https://llm.scads.ai/docs/usage/api/) (text simplification is done using `google/gemma-4-31B-it`).
+- **APIs**: [ScaDS.AI LLM](https://llm.scads.ai/docs/usage/api/) (text simplification is done using `google/gemma-4-26B-A4B-it`).
 
 ## Setup
 

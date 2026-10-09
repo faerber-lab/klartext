@@ -3,7 +3,7 @@ import axios from 'axios';
 // ScaDS.AI LLM service — an OpenAI-compatible LiteLLM proxy.
 // https://llm.scads.ai/docs/usage/api/
 const DEFAULT_BASE_URL = 'https://llm.scads.ai/v1';
-const DEFAULT_MODEL = 'google/gemma-4-31B-it';
+const DEFAULT_MODEL = 'google/gemma-4-26B-A4B-it';
 
 export const CHAT_COMPLETIONS = '/chat/completions';
 
